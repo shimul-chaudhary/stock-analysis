@@ -3,13 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Deep Analysis Financial Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: stocks
+    description: Stock data and screening
+  - name: analysis
+    description: Gemini AI deep dive analysis
+  - name: holdings
+    description: Portfolio holdings management
+  - name: macro
+    description: Macro heatmap and geopolitical events
 paths:
   /healthz:
     get:
@@ -24,6 +32,243 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /stocks/screen:
+    get:
+      operationId: screenStocks
+      tags: [stocks]
+      summary: Screen high-growth infrastructure stocks
+      description: Returns stocks matching the LITE-style breakout criteria
+      parameters:
+        - name: riskProfile
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [high_growth, balanced, value_stability]
+          description: Risk/return profile filter
+        - name: sector
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Sector filter
+      responses:
+        "200":
+          description: Screened stocks matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreenedStock"
+
+  /stocks/{symbol}/quote:
+    get:
+      operationId: getStockQuote
+      tags: [stocks]
+      summary: Get real-time stock quote and fundamentals
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stock quote and fundamentals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockQuote"
+        "404":
+          description: Symbol not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /stocks/{symbol}/news:
+    get:
+      operationId: getStockNews
+      tags: [stocks]
+      summary: Get latest news for a stock
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Latest news articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NewsArticle"
+
+  /stocks/summary:
+    get:
+      operationId: getMarketSummary
+      tags: [stocks]
+      summary: Get market summary stats
+      description: Total screened, top movers, sector breakdowns
+      responses:
+        "200":
+          description: Market summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketSummary"
+
+  /analysis/deep-dive:
+    post:
+      operationId: deepDiveAnalysis
+      tags: [analysis]
+      summary: Run Gemini Deep Dive analysis on a stock
+      description: Sends stock data and news to Gemini Pro for bull/bear/verdict analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeepDiveRequest"
+      responses:
+        "200":
+          description: Gemini analysis report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeepDiveReport"
+
+  /analysis/holdings:
+    post:
+      operationId: analyzeHoldings
+      tags: [analysis]
+      summary: Analyze portfolio holdings against macro landscape
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldingsAnalysisRequest"
+      responses:
+        "200":
+          description: Holdings analysis with geopolitical risk flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HoldingsAnalysisReport"
+
+  /holdings:
+    get:
+      operationId: getHoldings
+      tags: [holdings]
+      summary: Get all saved portfolio holdings
+      responses:
+        "200":
+          description: List of holdings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Holding"
+    post:
+      operationId: createHolding
+      tags: [holdings]
+      summary: Add a holding to portfolio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHoldingBody"
+      responses:
+        "201":
+          description: Created holding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+
+  /holdings/{id}:
+    put:
+      operationId: updateHolding
+      tags: [holdings]
+      summary: Update a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHoldingBody"
+      responses:
+        "200":
+          description: Updated holding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+    delete:
+      operationId: deleteHolding
+      tags: [holdings]
+      summary: Remove a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /macro/heatmap:
+    get:
+      operationId: getMacroHeatmap
+      tags: [macro]
+      summary: Get macro geopolitical heatmap data
+      description: Returns current geopolitical events and their market impact scores
+      responses:
+        "200":
+          description: Macro heatmap events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MacroEvent"
+
+  /macro/themes:
+    get:
+      operationId: getMacroThemes
+      tags: [macro]
+      summary: Get active macro themes driving the market
+      responses:
+        "200":
+          description: Active macro themes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MacroTheme"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +279,454 @@ components:
       required:
         - status
 
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ScreenedStock:
+      type: object
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        sector:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        revenueGrowth:
+          type: number
+        peRatio:
+          type: number
+        marketCap:
+          type: number
+        institutionalOwnership:
+          type: number
+        macroKeywords:
+          type: array
+          items:
+            type: string
+        geopoliticalScore:
+          type: number
+          description: 0-100 geopolitical exposure score
+        breakoutScore:
+          type: number
+          description: 0-100 LITE-style breakout score
+        riskProfile:
+          type: string
+          enum: [high_growth, balanced, value_stability]
+        isSoldOut:
+          type: boolean
+      required:
+        - symbol
+        - name
+        - sector
+        - price
+        - change
+        - changePercent
+        - revenueGrowth
+        - peRatio
+        - marketCap
+        - institutionalOwnership
+        - macroKeywords
+        - geopoliticalScore
+        - breakoutScore
+        - riskProfile
+        - isSoldOut
+
+    StockQuote:
+      type: object
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        volume:
+          type: number
+        peRatio:
+          type: number
+        eps:
+          type: number
+        revenueGrowth:
+          type: number
+        grossMargin:
+          type: number
+        institutionalOwnership:
+          type: number
+        fiftyTwoWeekHigh:
+          type: number
+        fiftyTwoWeekLow:
+          type: number
+        marketCap:
+          type: number
+        dividendYield:
+          type: number
+      required:
+        - symbol
+        - name
+        - price
+        - open
+        - high
+        - low
+        - volume
+        - peRatio
+        - eps
+        - revenueGrowth
+        - grossMargin
+        - institutionalOwnership
+        - fiftyTwoWeekHigh
+        - fiftyTwoWeekLow
+        - marketCap
+        - dividendYield
+
+    NewsArticle:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        url:
+          type: string
+        source:
+          type: string
+        publishedAt:
+          type: string
+        sentiment:
+          type: string
+          enum: [Bullish, Bearish, Neutral, Somewhat-Bullish, Somewhat-Bearish]
+        sentimentScore:
+          type: number
+        relevanceScore:
+          type: number
+      required:
+        - title
+        - summary
+        - url
+        - source
+        - publishedAt
+        - sentiment
+        - sentimentScore
+        - relevanceScore
+
+    MarketSummary:
+      type: object
+      properties:
+        totalScreened:
+          type: integer
+        highGrowthCount:
+          type: integer
+        newDiscoveries:
+          type: integer
+        avgBreakoutScore:
+          type: number
+        topSectors:
+          type: array
+          items:
+            type: object
+            properties:
+              sector:
+                type: string
+              count:
+                type: integer
+              avgScore:
+                type: number
+            required:
+              - sector
+              - count
+              - avgScore
+        topMacroTheme:
+          type: string
+      required:
+        - totalScreened
+        - highGrowthCount
+        - newDiscoveries
+        - avgBreakoutScore
+        - topSectors
+        - topMacroTheme
+
+    DeepDiveRequest:
+      type: object
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        peRatio:
+          type: number
+        revenueGrowth:
+          type: number
+        marketCap:
+          type: number
+        institutionalOwnership:
+          type: number
+        headlines:
+          type: array
+          items:
+            type: string
+        geopoliticalContext:
+          type: string
+      required:
+        - symbol
+        - name
+
+    DeepDiveReport:
+      type: object
+      properties:
+        symbol:
+          type: string
+        bullCase:
+          type: string
+        bearCase:
+          type: string
+        verdict:
+          type: string
+          enum: [Accumulate, Hold, Avoid]
+        verdictReasoning:
+          type: string
+        confidenceScore:
+          type: number
+          description: 0-100 confidence in the verdict
+        keyRisks:
+          type: array
+          items:
+            type: string
+        catalysts:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+          format: date-time
+      required:
+        - symbol
+        - bullCase
+        - bearCase
+        - verdict
+        - verdictReasoning
+        - confidenceScore
+        - keyRisks
+        - catalysts
+        - generatedAt
+
+    Holding:
+      type: object
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        shares:
+          type: number
+        avgCost:
+          type: number
+        currentPrice:
+          type: number
+        totalValue:
+          type: number
+        gainLoss:
+          type: number
+        gainLossPercent:
+          type: number
+        geopoliticalRisk:
+          type: string
+          enum: [Low, Medium, High, Critical]
+        notes:
+          type: string
+        addedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - symbol
+        - name
+        - shares
+        - avgCost
+        - currentPrice
+        - totalValue
+        - gainLoss
+        - gainLossPercent
+        - geopoliticalRisk
+        - addedAt
+
+    CreateHoldingBody:
+      type: object
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        shares:
+          type: number
+        avgCost:
+          type: number
+        notes:
+          type: string
+      required:
+        - symbol
+        - name
+        - shares
+        - avgCost
+
+    UpdateHoldingBody:
+      type: object
+      properties:
+        shares:
+          type: number
+        avgCost:
+          type: number
+        notes:
+          type: string
+
+    HoldingsAnalysisRequest:
+      type: object
+      properties:
+        holdings:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              name:
+                type: string
+              shares:
+                type: number
+            required:
+              - symbol
+              - name
+              - shares
+      required:
+        - holdings
+
+    HoldingsAnalysisReport:
+      type: object
+      properties:
+        overallRisk:
+          type: string
+          enum: [Low, Medium, High, Critical]
+        summary:
+          type: string
+        stockAnalyses:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              geopoliticalRisk:
+                type: string
+                enum: [Low, Medium, High, Critical]
+              riskFactors:
+                type: array
+                items:
+                  type: string
+              recommendation:
+                type: string
+            required:
+              - symbol
+              - geopoliticalRisk
+              - riskFactors
+              - recommendation
+        macroThreats:
+          type: array
+          items:
+            type: string
+        opportunities:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+          format: date-time
+      required:
+        - overallRisk
+        - summary
+        - stockAnalyses
+        - macroThreats
+        - opportunities
+        - generatedAt
+
+    MacroEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+          enum: [Geopolitical, Trade, Energy, Technology, Monetary, Regulatory]
+        region:
+          type: string
+        impactScore:
+          type: number
+          description: 0-100 market impact score
+        direction:
+          type: string
+          enum: [Bullish, Bearish, Neutral]
+        affectedSectors:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - category
+        - region
+        - impactScore
+        - direction
+        - affectedSectors
+        - description
+        - updatedAt
+
+    MacroTheme:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        momentum:
+          type: string
+          enum: [Accelerating, Stable, Decelerating]
+        relatedKeywords:
+          type: array
+          items:
+            type: string
+        topStocks:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - description
+        - momentum
+        - relatedKeywords
+        - topStocks
