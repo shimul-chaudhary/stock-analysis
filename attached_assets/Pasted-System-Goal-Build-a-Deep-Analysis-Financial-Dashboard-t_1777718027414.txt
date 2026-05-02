@@ -1,0 +1,23 @@
+System Goal: Build a "Deep Analysis" Financial Dashboard that identifies high-growth infrastructure stocks (like $LITE) using a combination of fundamental metrics, macro-geopolitical sentiment, and Gemini Pro reasoning.
+Technical Stack:
+•	Backend: Python (FastAPI).
+•	Frontend: React with Tailwind CSS and Shadcn/UI (Dark Mode).
+•	AI Engine: Google Gemini Pro via the google-generativeai Python library.
+•	Data: Alpha Vantage API for fundamentals and news.
+The "LITE-Style" Discovery Logic:
+Create a screening algorithm that flags companies meeting these "Infrastructure Breakout" criteria:
+	1.	Fundamental Strength: Revenue growth > 40% YoY, high institutional ownership, and a significant backlog or "sold out" status in their sector.
+	2.	Macro Sentiment: Use Alpha Vantage's News API to find companies mentioned alongside "AI Data Center," "1.6T Networking," "National Security Tech," or "Energy Grid."
+	3.	Geopolitical Filter: Analyze the impact of current 2026 scenarios: US-China tech trade fragmentation, oil prices above $100/bbl, and domestic semiconductor manufacturing incentives.
+Core Features:
+•	Gemini Advisory Engine: For any stock, the user can click "Deep Dive." This sends the last 10 news headlines and the company's P/E/Revenue data to Gemini Pro. Gemini must provide a "Solid Reasoning" report:
+•	The Bull Case: Why this could be the next $LITE.
+•	The Bear Case: Risks like overvaluation (90x P/E) or geopolitical exposure.
+•	The Verdict: (Accumulate / Hold / Avoid).
+•	Robinhood Integration: A read-only "Current Holdings" tab using Plaid to show my existing portfolio (Meta, Marvell, etc.) and let Gemini analyze them against the current macro landscape.
+•	Risk/Returns Toggle: A slider to filter for "High Growth/High Risk" vs. "Value/Stability."
+UI Requirements:
+•	A "Macro Heatmap" showing which geopolitical events are currently driving the market.
+•	A "Discovery" table for new stock ideas that match the $LITE growth profile.
+•	A "Holdings Analysis" view that flags which of my current stocks are most "at risk" from geopolitical shifts.
+Implementation Note: Use the GOOGLE_API_KEY from Replit Secrets to initialize the Gemini model. Ensure the code separates the API fetching logic from the AI prompt engineering. No buy/sell execution logic allowed.
